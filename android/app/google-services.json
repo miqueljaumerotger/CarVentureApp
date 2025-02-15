@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "143185701345",
+    "firebase_url": "https://carventure-7be0b-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "carventure-7be0b",
+    "storage_bucket": "carventure-7be0b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:143185701345:android:a9770767f171db56744aa0",
+        "android_client_info": {
+          "package_name": "com.example.carventureapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "143185701345-t674t91306a5injvu8v6o48s785s8jb5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8i_gX1RUUDtyEwNzBDmkJkPCpCfCJx3w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "143185701345-t674t91306a5injvu8v6o48s785s8jb5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "143185701345-120v48mqe1b6u4f7bvh19vpkdm5mhne3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.carventureapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
