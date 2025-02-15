@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart'; // Importamos la nueva pantalla de registro
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'home_screen.dart';
 
-class AuthScreen extends StatefulWidget {
+class RegisterScreen extends StatefulWidget {
   @override
-  _AuthScreenState createState() => _AuthScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   @override
@@ -18,14 +19,20 @@ class _AuthScreenState extends State<AuthScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text("Iniciar Sesión")),
+      appBar: AppBar(title: Text("Registro")),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Nombre')),
+            TextField(
                 controller: _emailController,
                 decoration: InputDecoration(labelText: 'Email')),
+            TextField(
+                controller: _phoneController,
+                decoration: InputDecoration(labelText: 'Teléfono')),
             TextField(
                 controller: _passwordController,
                 decoration: InputDecoration(labelText: 'Contraseña'),
@@ -34,9 +41,11 @@ class _AuthScreenState extends State<AuthScreen> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await authProvider.signIn(
+                  await authProvider.register(
                     _emailController.text.trim(),
                     _passwordController.text.trim(),
+                    _nameController.text.trim(),
+                    _phoneController.text.trim(),
                   );
                   Navigator.pushReplacement(
                     context,
@@ -48,17 +57,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   );
                 }
               },
-              child: Text("Iniciar Sesión"),
-            ),
-            TextButton(
-              onPressed: () {
-                // ✅ Ir a la nueva pantalla de registro en lugar de registrar aquí
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()),
-                );
-              },
-              child: Text("¿No tienes cuenta? Regístrate aquí"),
+              child: Text("Registrarse"),
             ),
           ],
         ),

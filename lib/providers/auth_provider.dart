@@ -48,14 +48,12 @@ class AuthProvider with ChangeNotifier {
   }
 }
 
-  Future<void> register(String email, String password) async {
+  Future<void> register(String email, String password, String nombre, String telefono) async {
   try {
-    // Intentar crear el usuario en Firebase Auth
     UserCredential userCredential =
         await _authService.register(email, password);
     String userId = userCredential.user!.uid;
 
-    // Verificar si el usuario ya existe en la base de datos
     DatabaseReference userRef =
         FirebaseDatabase.instance.ref().child('users').child(userId);
     DataSnapshot snapshot = await userRef.get();
@@ -65,15 +63,16 @@ class AuthProvider with ChangeNotifier {
       throw Exception("El usuario ya existe en la base de datos.");
     }
 
-    // ✅ Guardar datos del usuario en Firebase Database con valores seguros
+    // ✅ Guardar datos completos del usuario con historial_alquileres vacío
     await userRef.set({
       'email': email,
-      'nombre': 'Usuario',
-      'telefono': 'Sin teléfono', // Evita errores por falta de campo
-      'metodo_pago': 'No definido',
+      'nombre': nombre,
+      'telefono': telefono,
+      'metodo_pago': 'PayPal', // Siempre será PayPal
+      'historial_alquileres': {}, // 🔥 Asegurar que se guarde
     });
 
-    print("Usuario registrado exitosamente en Firebase Database.");
+    print("Usuario registrado exitosamente.");
 
     notifyListeners();
   } catch (e) {
