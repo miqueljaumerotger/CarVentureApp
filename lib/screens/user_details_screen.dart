@@ -14,7 +14,8 @@ class UserDetailsScreen extends StatefulWidget {
 
 class _UserDetailsScreenState extends State<UserDetailsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('users');
+  final DatabaseReference _userRef =
+      FirebaseDatabase.instance.ref().child('users');
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -42,7 +43,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     "https://api.dicebear.com/7.x/lorelei/svg?seed=Radiant",
     "https://api.dicebear.com/7.x/lorelei/svg?seed=Shadow",
     "https://api.dicebear.com/7.x/lorelei/svg?seed=Twilight",
-];
+  ];
 
   @override
   void initState() {
@@ -50,7 +51,8 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     if (widget.userData != null) {
       _nameController.text = widget.userData!['nombre'] ?? '';
       _phoneController.text = widget.userData!['telefono']?.toString() ?? '';
-      selectedProfileImage = widget.userData!['profileImage'] ?? profileImages[0];
+      selectedProfileImage =
+          widget.userData!['profileImage'] ?? profileImages[0];
     }
   }
 
@@ -121,16 +123,18 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 5),
                       child: CircleAvatar(
                         radius: 40,
-                        backgroundColor: selectedProfileImage == profileImages[index]
-                            ? Colors.blueAccent
-                            : Colors.grey.shade300,
+                        backgroundColor:
+                            selectedProfileImage == profileImages[index]
+                                ? Colors.blueAccent
+                                : Colors.grey.shade300,
                         child: ClipOval(
                           child: SvgPicture.network(
                             profileImages[index],
                             width: 75,
                             height: 75,
                             fit: BoxFit.cover,
-                            placeholderBuilder: (context) => CircularProgressIndicator(),
+                            placeholderBuilder: (context) =>
+                                CircularProgressIndicator(),
                           ),
                         ),
                       ),

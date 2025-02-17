@@ -11,7 +11,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _marcaController = TextEditingController();
   final _modeloController = TextEditingController();
   final _precioController = TextEditingController();
-  final _imagenController = TextEditingController(); // Campo para la URL de la imagen
+  final _imagenController =
+      TextEditingController(); // Campo para la URL de la imagen
   String selectedType = 'Coche';
   bool disponibilidad = true;
 
@@ -31,7 +32,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         precio,
         selectedType,
         disponibilidad,
-        _imagenController.text.isNotEmpty ? _imagenController.text : defaultImage, // 🔥 Usamos imagen por defecto si no introduce URL
+        _imagenController.text.isNotEmpty
+            ? _imagenController.text
+            : defaultImage, // 🔥 Usamos imagen por defecto si no introduce URL
       );
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -55,22 +58,26 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               TextFormField(
                 controller: _marcaController,
                 decoration: InputDecoration(labelText: 'Marca'),
-                validator: (value) => value!.isEmpty ? 'Campo obligatorio' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Campo obligatorio' : null,
               ),
               TextFormField(
                 controller: _modeloController,
                 decoration: InputDecoration(labelText: 'Modelo'),
-                validator: (value) => value!.isEmpty ? 'Campo obligatorio' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Campo obligatorio' : null,
               ),
               TextFormField(
                 controller: _precioController,
                 decoration: InputDecoration(labelText: 'Precio (€)'),
                 keyboardType: TextInputType.number,
-                validator: (value) => value!.isEmpty ? 'Campo obligatorio' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Campo obligatorio' : null,
               ),
               TextFormField(
                 controller: _imagenController,
-                decoration: InputDecoration(labelText: 'URL de Imagen (opcional)'),
+                decoration:
+                    InputDecoration(labelText: 'URL de Imagen (opcional)'),
               ),
               SizedBox(height: 10),
               DropdownButtonFormField<String>(
@@ -81,7 +88,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                   });
                 },
                 items: vehicleTypes
-                    .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                    .map((type) =>
+                        DropdownMenuItem(value: type, child: Text(type)))
                     .toList(),
                 decoration: InputDecoration(labelText: 'Tipo de Vehículo'),
               ),

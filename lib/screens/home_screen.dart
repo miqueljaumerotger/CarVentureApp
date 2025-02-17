@@ -1,10 +1,13 @@
 import 'package:carventureapp/screens/add_vehicle_screen.dart';
+import 'package:carventureapp/screens/renting_screen.dart';
+import 'package:carventureapp/screens/vehicle_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_svg/svg.dart';
 import 'auth_screen.dart';
 import 'user_details_screen.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -15,12 +18,15 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _vehiclesRef =
       FirebaseDatabase.instance.ref().child('vehiculos');
+  final DatabaseReference _reservationsRef =
+      FirebaseDatabase.instance.ref().child('reservas');
 
   final GlobalKey<ScaffoldState> _scaffoldKey =
       GlobalKey<ScaffoldState>(); // 🔥 Clave para abrir Drawer
 
   User? user;
   Map<dynamic, dynamic>? userData;
+  List<String> reservedVehicleIds = [];
 
   // 🔍 Variables para filtros y búsqueda
   String searchQuery = '';
@@ -35,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+    _loadReservedVehicles(); // 🔥 Cargar vehículos reservados al iniciar
   }
 
   Future<void> _loadUserData() async {
@@ -49,6 +56,42 @@ class _HomeScreenState extends State<HomeScreen> {
           userData = snapshot.value as Map<dynamic, dynamic>;
         });
       }
+    }
+  }
+
+  // 🔥 Cargar lista de vehículos reservados
+  Future<void> _loadReservedVehicles() async {
+    DatabaseEvent event = await _reservationsRef.once();
+    DateTime today = DateTime.now();
+
+    if (event.snapshot.value != null &&
+        event.snapshot.value is Map<dynamic, dynamic>) {
+      Map<dynamic, dynamic> data =
+          event.snapshot.value as Map<dynamic, dynamic>;
+
+      setState(() {
+        reservedVehicleIds = data.entries
+            .where((entry) {
+              var reserva = entry.value as Map<dynamic, dynamic>;
+
+              if (reserva.containsKey('fecha_inicio') &&
+                  reserva.containsKey('fecha_fin') &&
+                  reserva.containsKey('vehiculo')) {
+                DateTime startDate =
+                    DateFormat("yyyy-MM-dd").parse(reserva['fecha_inicio']);
+                DateTime endDate =
+                    DateFormat("yyyy-MM-dd").parse(reserva['fecha_fin']);
+
+                return today.isAfter(startDate) && today.isBefore(endDate);
+              }
+              return false;
+            })
+            .map((entry) => entry.value['vehiculo'].toString())
+            .toList();
+      });
+
+      print(
+          "🚗 Vehículos Reservados: $reservedVehicleIds"); // ✅ Debug en consola
     }
   }
 
@@ -69,8 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.exit_to_app),
             onPressed: () async {
               await _auth.signOut();
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => AuthScreen()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => AuthScreen()),
+              );
             },
           ),
           IconButton(
@@ -186,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         Map<dynamic, dynamic> vehicles = data;
 
-        // 🔍 Aplicar filtros
+        // 🔍 Aplicar filtros y ocultar vehículos reservados
         List<MapEntry<dynamic, dynamic>> filteredVehicles =
             vehicles.entries.where((entry) {
           var vehicle = entry.value;
@@ -214,30 +259,71 @@ class _HomeScreenState extends State<HomeScreen> {
               (vehicle['disponibilidad'] != null &&
                   vehicle['disponibilidad'] == true);
 
+          bool isNotReserved =
+              !reservedVehicleIds.contains(entry.key.toString());
+
           return matchesSearch &&
               matchesType &&
               matchesPrice &&
-              matchesAvailability;
+              matchesAvailability &&
+              isNotReserved;
         }).toList();
 
         return ListView.builder(
-  itemCount: filteredVehicles.length,
-  itemBuilder: (context, index) {
-    var vehicle = filteredVehicles[index].value;
-    String imageUrl = (vehicle['imagenes'] != null && vehicle['imagenes'].isNotEmpty)
-        ? vehicle['imagenes'][0] // Usa la primera imagen si está disponible
-        : "https://cdn-icons-png.flaticon.com/512/1998/1998701.png"; // 🔥 Imagen por defecto
+          itemCount: filteredVehicles.length,
+          itemBuilder: (context, index) {
+            var vehicle = filteredVehicles[index].value;
+            String vehicleId = filteredVehicles[index].key.toString();
 
-    return Card(
-      child: ListTile(
-        leading: Image.network(imageUrl, width: 80, height: 80, fit: BoxFit.cover),
-        title: Text("${vehicle['marca'] ?? 'Desconocido'} ${vehicle['modelo'] ?? ''}"),
-        subtitle: Text("Precio: ${vehicle['precio']}€ / día"),
-      ),
-    );
-  },
-);
+            // 🔥 Obtener imagen del vehículo o imagen por defecto
+            String imageUrl = (vehicle['imagenes'] != null &&
+                    vehicle['imagenes'].isNotEmpty)
+                ? vehicle['imagenes'][0]
+                : "https://cdn-icons-png.flaticon.com/512/1998/1998701.png"; // 🔥 Imagen por defecto
 
+            return Card(
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0), // 🔥 Agrega espacio interno
+                leading: SizedBox(
+                  width:
+                      80, // 🔥 Fija el ancho de la imagen para evitar el error
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      imageUrl,
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(child: CircularProgressIndicator());
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(Icons.image_not_supported,
+                            size: 50, color: Colors.grey);
+                      },
+                    ),
+                  ),
+                ),
+                title: Text("${vehicle['marca']} ${vehicle['modelo']}"),
+                subtitle: Text("Precio: ${vehicle['precio']}€ / día"),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VehicleDetailsScreen(
+                        vehicleId: vehicleId,
+                        vehicleData: vehicle,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -268,7 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ✅ Solo dejamos UNA opción para "Editar Perfil"
+          // ✅ Opción para "Editar Perfil"
           ListTile(
             leading: Icon(Icons.settings),
             title: Text("Editar Perfil"),
@@ -288,13 +374,28 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
 
+          // ✅ Opción para "Mis Rentings"
+          ListTile(
+            leading: Icon(Icons.calendar_today),
+            title: Text("Mis Rentings"),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => RentingScreen()), // 🔥 Nueva pantalla
+              );
+            },
+          ),
+
           ListTile(
             leading: Icon(Icons.exit_to_app),
             title: Text("Cerrar Sesión"),
             onTap: () async {
               await _auth.signOut();
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => AuthScreen()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => AuthScreen()),
+              );
             },
           ),
         ],

@@ -28,11 +28,16 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> _register() async {
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      await FirebaseDatabase.instance.ref().child('users').child(userCredential.user!.uid).set({
+      await FirebaseDatabase.instance
+          .ref()
+          .child('users')
+          .child(userCredential.user!.uid)
+          .set({
         'email': _emailController.text.trim(),
       });
       Navigator.pushReplacement(
@@ -50,8 +55,13 @@ class _AuthScreenState extends State<AuthScreen> {
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(controller: _emailController, decoration: InputDecoration(labelText: 'Email')),
-            TextField(controller: _passwordController, decoration: InputDecoration(labelText: 'Password'), obscureText: true),
+            TextField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email')),
+            TextField(
+                controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true),
             SizedBox(height: 20),
             ElevatedButton(onPressed: _signIn, child: Text("Iniciar Sesión")),
             ElevatedButton(onPressed: _register, child: Text("Registrarse")),
