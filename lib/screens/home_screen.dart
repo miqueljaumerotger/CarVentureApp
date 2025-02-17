@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_svg/svg.dart';
 import 'auth_screen.dart';
 import 'user_details_screen.dart';
 
@@ -14,7 +15,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final DatabaseReference _vehiclesRef =
       FirebaseDatabase.instance.ref().child('vehiculos');
 
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // 🔥 Clave para abrir Drawer
+  final GlobalKey<ScaffoldState> _scaffoldKey =
+      GlobalKey<ScaffoldState>(); // 🔥 Clave para abrir Drawer
 
   User? user;
   Map<dynamic, dynamic>? userData;
@@ -49,7 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: IconButton(
           icon: Icon(Icons.person), // Ícono de usuario
           onPressed: () {
-            _scaffoldKey.currentState!.openDrawer(); // 🔥 Ahora sí se abre el Drawer
+            _scaffoldKey.currentState!
+                .openDrawer(); // 🔥 Ahora sí se abre el Drawer
           },
         ),
         actions: [
@@ -57,8 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.exit_to_app),
             onPressed: () async {
               await _auth.signOut();
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => AuthScreen()));
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => AuthScreen()));
             },
           ),
         ],
@@ -90,8 +93,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ListTile(
                   leading: Image.network(vehicle['imagenes'][0] ?? '',
                       width: 80, height: 80, fit: BoxFit.cover),
-                  title: Text("${vehicle['marca'] ?? 'Desconocido'} ${vehicle['modelo'] ?? ''}"),
-                  subtitle: Text("Precio: \${vehicle['precio']?.toString() ?? 'N/A'}€/día"),
+                  title: Text(
+                      "${vehicle['marca'] ?? 'Desconocido'} ${vehicle['modelo'] ?? ''}"),
+                  subtitle: Text(
+                      "Precio: ${vehicle['precio'] ?? 'Precio no disponible'}€ / dia"),
                 ),
               );
             },
@@ -102,67 +107,63 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildUserDrawer(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(userData?['nombre'] ?? 'Usuario'),
-            accountEmail: Text(userData?['email'] ?? 'Sin Email'),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.person, size: 40, color: Colors.white),
-            ),
+  return Drawer(
+    child: ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        UserAccountsDrawerHeader(
+          accountName: Text(userData?['nombre'] ?? 'Usuario'),
+          accountEmail: Text(userData?['email'] ?? 'Sin Email'),
+          currentAccountPicture: CircleAvatar(
+            backgroundColor: Colors.grey.shade300,
+            child: userData?['profileImage'] != null
+                ? ClipOval(
+                    child: SvgPicture.network(
+                      userData!['profileImage'],
+                      width: 75,
+                      height: 75,
+                      fit: BoxFit.cover,
+                      placeholderBuilder: (context) =>
+                          CircularProgressIndicator(),
+                    ),
+                  )
+                : Icon(Icons.person,
+                    size: 40, color: Colors.white), // Imagen por defecto
           ),
-          ListTile(
-  leading: Icon(Icons.settings),
-  title: Text("Editar Perfil"),
-  onTap: () async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(user.uid);
-      DataSnapshot snapshot = await userRef.get();
+        ),
+        
+        // ✅ Solo dejamos UNA opción para "Editar Perfil"
+        ListTile(
+          leading: Icon(Icons.settings),
+          title: Text("Editar Perfil"),
+          onTap: () async {
+            final updatedUserData = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        UserDetailsScreen(userData: userData)));
 
-      if (snapshot.exists && snapshot.value != null) {
-        Map<dynamic, dynamic>? updatedUserData = snapshot.value as Map<dynamic, dynamic>?;
+            // 🔥 Si los datos se actualizaron, refrescamos la UI
+            if (updatedUserData != null) {
+              setState(() {
+                userData = updatedUserData;
+              });
+            }
+          },
+        ),
 
-        // ✅ Ir a `UserDetailsScreen` con los datos más recientes de Firebase
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => UserDetailsScreen(userData: updatedUserData))
-        );
+        ListTile(
+          leading: Icon(Icons.exit_to_app),
+          title: Text("Cerrar Sesión"),
+          onTap: () async {
+            await _auth.signOut();
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => AuthScreen()));
+          },
+        ),
+      ],
+    ),
+  );
+}
 
-        // ✅ Si el usuario editó sus datos, actualizamos la UI con los nuevos valores
-        if (result != null) {
-          setState(() {
-            userData = result;
-          });
-        }
-      }
-    }
-  },
-),
-
-          ListTile(
-  leading: Icon(Icons.settings),
-  title: Text("Editar Perfil"),
-  onTap: () async {
-    final updatedUserData = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => UserDetailsScreen(userData: userData))
-    );
-
-    // 🔥 Si los datos se actualizaron, refrescamos la UI
-    if (updatedUserData != null) {
-      setState(() {
-        userData = updatedUserData;
-      });
-    }
-  },
-),
-
-        ],
-      ),
-    );
-  }
 }
