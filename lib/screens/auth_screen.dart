@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart'; // Importamos la nueva pantalla de registro
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import 'home_screen.dart';
+import 'package:carventureapp/providers/auth_provider.dart';
+import 'package:carventureapp/screens/home_screen.dart';
+import 'package:carventureapp/screens/register_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   @override
@@ -22,15 +22,20 @@ class _AuthScreenState extends State<AuthScreen> {
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email')),
+              controller: _emailController,
+              decoration: InputDecoration(labelText: 'Email'),
+            ),
             TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Contraseña'),
-                obscureText: true),
+              controller: _passwordController,
+              decoration: InputDecoration(labelText: 'Contraseña'),
+              obscureText: true,
+            ),
             SizedBox(height: 20),
+            
+            // 🔥 Botón de Inicio de Sesión Tradicional
             ElevatedButton(
               onPressed: () async {
                 try {
@@ -50,9 +55,37 @@ class _AuthScreenState extends State<AuthScreen> {
               },
               child: Text("Iniciar Sesión"),
             ),
+
+            // 🔥 Botón de Google Sign-In
+            SizedBox(height: 10),
+            ElevatedButton.icon(
+              icon: Image.asset('assets/google_logo.png', width: 24),
+              label: Text("Iniciar sesión con Google"),
+              onPressed: () async {
+                try {
+                  await authProvider.signInWithGoogle();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomeScreen()),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Error: ${e.toString()}")),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+
+            SizedBox(height: 10),
             TextButton(
               onPressed: () {
-                // ✅ Ir a la nueva pantalla de registro en lugar de registrar aquí
+                // ✅ Ir a la pantalla de registro
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => RegisterScreen()),

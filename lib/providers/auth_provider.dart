@@ -1,10 +1,12 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../services/firebase_auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseAuthService _authService = FirebaseAuthService();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   User? get user => _authService.user;
 
@@ -83,8 +85,48 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> signInWithGoogle() async {
+  try {
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) {
+      print("⚠️ Inicio de sesión cancelado por el usuario.");
+      return;
+    }
+
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final AuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    UserCredential userCredential = await _authService.signInWithCredential(credential);
+    String userId = userCredential.user!.uid;
+
+    DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(userId);
+    DataSnapshot snapshot = await userRef.get();
+
+    if (!snapshot.exists) {
+      print("✅ Creando nuevo usuario en Firebase...");
+      await userRef.set({
+        'email': userCredential.user!.email,
+        'nombre': userCredential.user!.displayName ?? 'Usuario de Google',
+        'telefono': userCredential.user!.phoneNumber ?? 'Sin teléfono',
+        'metodo_pago': 'PayPal',
+        'historial_alquileres': {},
+      });
+    }
+
+    print("✅ Inicio de sesión con Google exitoso.");
+    notifyListeners();
+  } catch (e) {
+    print("❌ Error en Google Sign-In: $e");
+    throw e;
+  }
+}
+
   Future<void> signOut() async {
     await _authService.signOut();
+    await _googleSignIn.signOut();
     notifyListeners();
   }
 }

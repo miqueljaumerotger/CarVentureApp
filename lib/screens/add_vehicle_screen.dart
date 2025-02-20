@@ -74,73 +74,104 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Agregar Vehículo")),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _marcaController,
-                decoration: InputDecoration(labelText: "Marca"),
-                validator: (value) => value!.isEmpty ? "Campo obligatorio" : null,
-              ),
-              TextFormField(
-                controller: _modeloController,
-                decoration: InputDecoration(labelText: "Modelo"),
-                validator: (value) => value!.isEmpty ? "Campo obligatorio" : null,
-              ),
-              TextFormField(
-                controller: _precioController,
-                decoration: InputDecoration(labelText: "Precio por día (€)"),
-                keyboardType: TextInputType.number,
-                validator: (value) => value!.isEmpty ? "Campo obligatorio" : null,
-              ),
-              DropdownButtonFormField(
-                value: _tipo,
-                items: ['Coche', 'Moto']
-                    .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
-                    .toList(),
-                onChanged: (value) => setState(() => _tipo = value.toString()),
-                decoration: InputDecoration(labelText: "Tipo de Vehículo"),
-              ),
-              SwitchListTile(
-                title: Text("Disponible"),
-                value: _disponibilidad,
-                onChanged: (value) => setState(() => _disponibilidad = value),
-              ),
-              SizedBox(height: 10),
+      body: SingleChildScrollView( // 🔥 Evita el overflow permitiendo desplazamiento
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 📌 Campos de entrada de datos
+                TextFormField(
+                  controller: _marcaController,
+                  decoration: InputDecoration(labelText: "Marca"),
+                  validator: (value) => value!.isEmpty ? "Campo obligatorio" : null,
+                ),
+                SizedBox(height: 10),
 
-              // 📷 Selección de imagen
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.image),
-                    label: Text("Galería"),
-                    onPressed: () => _pickImage(ImageSource.gallery),
+                TextFormField(
+                  controller: _modeloController,
+                  decoration: InputDecoration(labelText: "Modelo"),
+                  validator: (value) => value!.isEmpty ? "Campo obligatorio" : null,
+                ),
+                SizedBox(height: 10),
+
+                TextFormField(
+                  controller: _precioController,
+                  decoration: InputDecoration(labelText: "Precio por día (€)"),
+                  keyboardType: TextInputType.number,
+                  validator: (value) => value!.isEmpty ? "Campo obligatorio" : null,
+                ),
+                SizedBox(height: 10),
+
+                DropdownButtonFormField(
+                  value: _tipo,
+                  items: ['Coche', 'Moto']
+                      .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
+                      .toList(),
+                  onChanged: (value) => setState(() => _tipo = value.toString()),
+                  decoration: InputDecoration(labelText: "Tipo de Vehículo"),
+                ),
+                SizedBox(height: 10),
+
+                SwitchListTile(
+                  title: Text("Disponible"),
+                  value: _disponibilidad,
+                  onChanged: (value) => setState(() => _disponibilidad = value),
+                ),
+                SizedBox(height: 20),
+
+                // 📷 Selección de imagen
+                Text("Seleccionar Imagen", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.image),
+                      label: Text("Galería"),
+                      onPressed: () => _pickImage(ImageSource.gallery),
+                    ),
+                    SizedBox(width: 10),
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.camera_alt),
+                      label: Text("Cámara"),
+                      onPressed: () => _pickImage(ImageSource.camera),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+
+                // 🔥 Mostrar imagen seleccionada
+                Center(
+                  child: _selectedImage != null
+                      ? Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(_selectedImage!, width: 200, height: 200, fit: BoxFit.cover),
+                          ),
+                        )
+                      : Text("No se ha seleccionado ninguna imagen", style: TextStyle(color: Colors.grey)),
+                ),
+
+                SizedBox(height: 20),
+
+                // 🔥 Botón para guardar vehículo
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _saveVehicle,
+                    child: Text("Guardar Vehículo"),
                   ),
-                  SizedBox(width: 10),
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.camera_alt),
-                    label: Text("Cámara"),
-                    onPressed: () => _pickImage(ImageSource.camera),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-
-              // 🔥 Mostrar imagen seleccionada
-              _selectedImage != null
-                  ? Image.file(_selectedImage!, width: 200, height: 200, fit: BoxFit.cover)
-                  : Text("No se ha seleccionado ninguna imagen"),
-
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveVehicle,
-                child: Text("Guardar Vehículo"),
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

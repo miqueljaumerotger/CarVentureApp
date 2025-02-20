@@ -20,6 +20,11 @@ class FirebaseAuthService {
     );
   }
 
+  // 🔥 Método para autenticarse con Google (soluciona el error)
+  Future<UserCredential> signInWithCredential(AuthCredential credential) async {
+    return await _auth.signInWithCredential(credential);
+  }
+
   Future<void> signOut() async {
     await _auth.signOut();
   }
