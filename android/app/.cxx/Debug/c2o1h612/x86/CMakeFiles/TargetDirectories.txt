@@ -1,0 +1,2 @@
+C:/GS2/2n any/PMM/Tema5/carventureapp/android/app/.cxx/Debug/c2o1h612/x86/CMakeFiles/edit_cache.dir
+C:/GS2/2n any/PMM/Tema5/carventureapp/android/app/.cxx/Debug/c2o1h612/x86/CMakeFiles/rebuild_cache.dir
