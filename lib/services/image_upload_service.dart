@@ -2,6 +2,21 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+/**
+ * Clase ImageUploadService
+ *
+ * Esta clase maneja la carga de imágenes a Cloudinary mediante solicitudes HTTP.
+ *
+ * Funcionalidades principales:
+ * - `uploadImageToCloudinary()`: Sube una imagen a Cloudinary y devuelve la URL segura de la imagen cargada.
+ *
+ * Uso:
+ * - Se utiliza en la aplicación para permitir a los usuarios subir imágenes de vehículos.
+ * - Requiere una URL de Cloudinary válida y un `upload_preset` configurado en la cuenta de Cloudinary.
+ * - Maneja errores y excepciones en caso de fallos en la carga.
+ */
+
+
 class ImageUploadService {
   Future<String?> uploadImageToCloudinary(File imageFile) async {
     try {

@@ -2,6 +2,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
 
+/**
+ * Clase FirebaseDatabaseService
+ *
+ * Esta clase maneja la interacción con Firebase Realtime Database para gestionar vehículos y reservas.
+ * Permite agregar vehículos, realizar reservas y consultar vehículos reservados.
+ *
+ * Funcionalidades principales:
+ * - `agregarVehiculo()`: Agrega un nuevo vehículo a la base de datos con su información y disponibilidad.
+ * - `reservarVehiculo()`: Crea una reserva para un vehículo, registrando las fechas y marcándolo como no disponible.
+ * - `getReservedVehicleIds()`: Obtiene una lista de los vehículos que están reservados en la fecha actual.
+ *
+ * Uso:
+ * - Esta clase se usa dentro de la aplicación para interactuar con la base de datos en la gestión de vehículos y reservas.
+ * - Requiere autenticación con Firebase para asociar vehículos y reservas con los usuarios correspondientes.
+ */
+
+
 class FirebaseDatabaseService {
   final DatabaseReference _vehiclesRef =
       FirebaseDatabase.instance.ref().child('vehiculos');

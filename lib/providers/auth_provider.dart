@@ -4,6 +4,36 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../services/firebase_auth_service.dart';
 
+/**
+ * AuthProvider - Proveedor de Autenticación con Firebase y Google Sign-In
+ *
+ * Esta clase actúa como un `ChangeNotifier` en Flutter y se encarga de gestionar
+ * la autenticación del usuario a través de Firebase Authentication y Google Sign-In.
+ *
+ * **Funciones principales:**
+ * 
+ * - `signIn(email, password)`: Inicia sesión con correo y contraseña en Firebase.
+ *   - Verifica si el usuario existe en la base de datos antes de permitir el acceso.
+ * 
+ * - `register(email, password, nombre, telefono)`: Registra un usuario en Firebase.
+ *   - Guarda la información del usuario en la base de datos, incluyendo historial de alquileres vacío.
+ *
+ * - `signInWithGoogle()`: Inicia sesión con Google Sign-In.
+ *   - Si el usuario no existe en la base de datos, lo registra automáticamente.
+ * 
+ * - `signOut()`: Cierra sesión tanto en Firebase como en Google.
+ *
+ * **Conexiones:**
+ * - Firebase Authentication: Maneja el inicio de sesión, registro y cierre de sesión.
+ * - Firebase Realtime Database: Verifica y almacena información del usuario.
+ * - Google Sign-In: Permite autenticación con una cuenta de Google.
+ *
+ * **Manejo de Errores:**
+ * - Si el usuario no existe en la base de datos al iniciar sesión → Error.
+ * - Si el registro falla porque ya existe un usuario → Error.
+ * - Manejo de errores en la autenticación con Google.
+ */
+
 class AuthProvider with ChangeNotifier {
   final FirebaseAuthService _authService = FirebaseAuthService();
   final GoogleSignIn _googleSignIn = GoogleSignIn();

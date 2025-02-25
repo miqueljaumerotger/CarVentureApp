@@ -9,6 +9,37 @@ import 'auth_screen.dart';
 import 'user_details_screen.dart';
 import 'package:intl/intl.dart';
 
+/**
+ * Clase HomeScreen
+ *
+ * Esta pantalla actúa como el punto central de la aplicación, permitiendo a los usuarios 
+ * explorar y gestionar vehículos disponibles para alquilar. También proporciona acceso 
+ * a la información del usuario y opciones adicionales a través de un menú lateral.
+ *
+ * Funcionalidades principales:
+ * - Muestra una lista de vehículos disponibles con la posibilidad de filtrarlos.
+ * - Permite buscar vehículos por marca o modelo.
+ * - Ofrece filtros por tipo de vehículo y rango de precios.
+ * - Indica si un vehículo está disponible para alquilar.
+ * - Accede a la pantalla de detalles del vehículo seleccionado.
+ * - Integra un menú lateral con opciones para editar perfil, revisar reservas activas y cerrar sesión.
+ * - Permite agregar nuevos vehículos a la base de datos.
+ *
+ * Métodos destacados:
+ * - `_loadUserData()`: Carga la información del usuario desde Firebase.
+ * - `_loadReservedVehicles()`: Obtiene la lista de vehículos reservados para evitar mostrar opciones no disponibles.
+ * - `_buildFilters()`: Genera la interfaz de filtros y búsqueda.
+ * - `_buildVehicleList()`: Carga y muestra la lista de vehículos disponibles con las opciones de filtrado aplicadas.
+ * - `_buildUserDrawer(BuildContext context)`: Construye el menú lateral con información del usuario y opciones adicionales.
+ *
+ * Diseño:
+ * - Barra de navegación con degradado en tonos morado y azul.
+ * - Fondo con efecto de neón para mantener la temática futurista de la aplicación.
+ * - Tarjetas de vehículos con imágenes, información y estilos personalizados.
+ * - Menú lateral con fondo degradado y opciones de navegación resaltadas.
+ */
+
+
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -100,34 +131,63 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey, // 🔥 Asignamos la clave aquí
       appBar: AppBar(
-        title: Text("Vehículos Disponibles"),
-        leading: IconButton(
-          icon: Icon(Icons.person), // Ícono de usuario
-          onPressed: () {
-            _scaffoldKey.currentState!.openDrawer();
-          },
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.deepPurple, Colors.indigo],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: Text(
+          "CARVENTURE",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            color: Colors.white,
+          ),
+        ),
+        leading: InkWell(
+          borderRadius: BorderRadius.circular(30),
+          onTap: () => _scaffoldKey.currentState!.openDrawer(),
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Icon(Icons.person, size: 30, color: Colors.white),
+          ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.exit_to_app),
-            onPressed: () async {
+          InkWell(
+            borderRadius: BorderRadius.circular(30),
+            onTap: () async {
               await _auth.signOut();
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => AuthScreen()),
               );
             },
-          ),
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AddVehicleScreen()),
-              );
-            },
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Icon(Icons.exit_to_app, size: 28, color: Colors.white),
+            ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddVehicleScreen()),
+          );
+        },
+        backgroundColor: Colors.indigoAccent,
+        child: Icon(Icons.add, size: 30, color: Colors.white),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
       ),
       drawer: _buildUserDrawer(context),
       body: Column(
@@ -142,14 +202,15 @@ class _HomeScreenState extends State<HomeScreen> {
   // 🔍 Filtros y Búsqueda
   Widget _buildFilters() {
     return Padding(
-      padding: EdgeInsets.all(10.0),
+      padding: EdgeInsets.all(16.0),
       child: Column(
         children: [
           TextField(
             decoration: InputDecoration(
               labelText: 'Buscar por marca o modelo',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.search, color: Colors.indigo),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onChanged: (value) {
               setState(() {
@@ -157,11 +218,12 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
           ),
-          SizedBox(height: 10),
+          SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Filtrar por tipo:"),
+              Text("Filtrar por tipo:",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               DropdownButton<String>(
                 value: selectedType,
                 onChanged: (value) {
@@ -178,8 +240,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          SizedBox(height: 10),
-          Text("Filtrar por precio (€)"),
+          SizedBox(height: 12),
+          Text("Filtrar por precio (€)",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           RangeSlider(
             values: RangeValues(minPrice, maxPrice),
             min: 0,
@@ -196,7 +259,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Solo vehículos disponibles"),
+              Text("Solo vehículos disponibles",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               Switch(
                 value: showOnlyAvailable,
                 onChanged: (value) {
@@ -221,12 +285,22 @@ class _HomeScreenState extends State<HomeScreen> {
           return Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
-          return Center(child: Text("No hay vehículos disponibles."));
+          return Center(
+            child: Text(
+              "No hay vehículos disponibles.",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+          );
         }
 
         final data = snapshot.data!.snapshot.value;
         if (data is! Map<dynamic, dynamic>) {
-          return Center(child: Text("Error al cargar los datos."));
+          return Center(
+            child: Text(
+              "Error al cargar los datos.",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+          );
         }
 
         Map<dynamic, dynamic> vehicles = data;
@@ -282,33 +356,40 @@ class _HomeScreenState extends State<HomeScreen> {
                 : "https://cdn-icons-png.flaticon.com/512/1998/1998701.png"; // 🔥 Imagen por defecto
 
             return Card(
+              elevation: 6,
+              margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
               child: ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0), // 🔥 Agrega espacio interno
-                leading: SizedBox(
-                  width:
-                      80, // 🔥 Fija el ancho de la imagen para evitar el error
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      imageUrl,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(child: CircularProgressIndicator());
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.image_not_supported,
-                            size: 50, color: Colors.grey);
-                      },
-                    ),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    imageUrl,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(child: CircularProgressIndicator());
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.image_not_supported,
+                          size: 50, color: Colors.grey);
+                    },
                   ),
                 ),
-                title: Text("${vehicle['marca']} ${vehicle['modelo']}"),
-                subtitle: Text("Precio: ${vehicle['precio']}€ / día"),
+                title: Text(
+                  "${vehicle['marca']} ${vehicle['modelo']}",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  "Precio: ${vehicle['precio']}€ / día",
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                ),
+                trailing: Icon(Icons.arrow_forward_ios, color: Colors.indigo),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -328,77 +409,106 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // 🔥 Menú lateral con fondo degradado y mejores estilos
   Widget _buildUserDrawer(BuildContext context) {
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(userData?['nombre'] ?? 'Usuario'),
-            accountEmail: Text(userData?['email'] ?? 'Sin Email'),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.grey.shade300,
-              child: userData?['profileImage'] != null
-                  ? ClipOval(
-                      child: SvgPicture.network(
-                        userData!['profileImage'],
-                        width: 75,
-                        height: 75,
-                        fit: BoxFit.cover,
-                        placeholderBuilder: (context) =>
-                            CircularProgressIndicator(),
-                      ),
-                    )
-                  : Icon(Icons.person,
-                      size: 40, color: Colors.white), // Imagen por defecto
-            ),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.deepPurple, Colors.indigo],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+        ),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            UserAccountsDrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+              ),
+              accountName: Text(
+                userData?['nombre'] ?? 'Usuario',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              accountEmail: Text(
+                userData?['email'] ?? 'Sin Email',
+                style: TextStyle(fontSize: 16),
+              ),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: Colors.grey.shade300,
+                child: userData?['profileImage'] != null
+                    ? ClipOval(
+                        child: SvgPicture.network(
+                          userData!['profileImage'],
+                          width: 75,
+                          height: 75,
+                          fit: BoxFit.cover,
+                          placeholderBuilder: (context) =>
+                              CircularProgressIndicator(),
+                        ),
+                      )
+                    : Icon(Icons.person, size: 40, color: Colors.white),
+              ),
+            ),
 
-          // ✅ Opción para "Editar Perfil"
-          ListTile(
-            leading: Icon(Icons.settings),
-            title: Text("Editar Perfil"),
-            onTap: () async {
-              final updatedUserData = await Navigator.push(
+            // ✅ Opción para "Editar Perfil"
+            ListTile(
+              leading: Icon(Icons.settings, color: Colors.white),
+              title: Text(
+                "Editar Perfil",
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
+              onTap: () async {
+                final updatedUserData = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            UserDetailsScreen(userData: userData)));
+
+                // 🔥 Si los datos se actualizaron, refrescamos la UI
+                if (updatedUserData != null) {
+                  setState(() {
+                    userData = updatedUserData;
+                  });
+                }
+              },
+            ),
+
+            // ✅ Opción para "Mis Rentings"
+            ListTile(
+              leading: Icon(Icons.calendar_today, color: Colors.white),
+              title: Text(
+                "Mis Rentings",
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          UserDetailsScreen(userData: userData)));
+                          RentingScreen()), // 🔥 Nueva pantalla
+                );
+              },
+            ),
 
-              // 🔥 Si los datos se actualizaron, refrescamos la UI
-              if (updatedUserData != null) {
-                setState(() {
-                  userData = updatedUserData;
-                });
-              }
-            },
-          ),
-
-          // ✅ Opción para "Mis Rentings"
-          ListTile(
-            leading: Icon(Icons.calendar_today),
-            title: Text("Mis Rentings"),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => RentingScreen()), // 🔥 Nueva pantalla
-              );
-            },
-          ),
-
-          ListTile(
-            leading: Icon(Icons.exit_to_app),
-            title: Text("Cerrar Sesión"),
-            onTap: () async {
-              await _auth.signOut();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => AuthScreen()),
-              );
-            },
-          ),
-        ],
+            // ✅ Opción para "Cerrar Sesión"
+            ListTile(
+              leading: Icon(Icons.exit_to_app, color: Colors.white),
+              title: Text(
+                "Cerrar Sesión",
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
+              onTap: () async {
+                await _auth.signOut();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => AuthScreen()),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

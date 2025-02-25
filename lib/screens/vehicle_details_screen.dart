@@ -3,6 +3,33 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
 
+/**
+ * Clase VehicleDetailsScreen
+ *
+ * Esta pantalla muestra los detalles de un vehículo específico y permite a los usuarios realizar reservas.
+ * Los usuarios pueden ver información del vehículo, seleccionar fechas para la reserva y calcular el costo total.
+ * 
+ * Funcionalidades principales:
+ * - Muestra la imagen, marca, modelo y precio por día del vehículo.
+ * - Permite seleccionar la fecha de inicio y fin de la reserva con un selector de fecha estilizado.
+ * - Calcula automáticamente el precio total en función de los días seleccionados.
+ * - Guarda la reserva en Firebase Realtime Database y marca el vehículo como no disponible.
+ *
+ * Métodos destacados:
+ * - `_selectDate()`: Abre un selector de fecha con un tema personalizado.
+ * - `_calculateTotalPrice()`: Calcula el precio total en base a los días seleccionados.
+ * - `_confirmReservation()`: Guarda la reserva en Firebase y cambia la disponibilidad del vehículo.
+ * - `_buildNeonBackground()`: Genera un fondo degradado con efecto neón.
+ * - `_buildVehicleImage()`: Muestra la imagen del vehículo con efecto de sombra brillante.
+ * - `_buildNeonButton()`: Renderiza un botón estilizado con efecto de neón.
+ *
+ * Diseño:
+ * - Utiliza un fondo oscuro con efectos de neón en tonos morados y azules.
+ * - Los elementos visuales incluyen sombras, degradados y un diseño atractivo para mejorar la experiencia del usuario.
+ * - El selector de fecha y los botones están adaptados al estilo futurista de la aplicación.
+ */
+
+
 class VehicleDetailsScreen extends StatefulWidget {
   final String vehicleId;
   final Map<dynamic, dynamic> vehicleData;
@@ -20,17 +47,31 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
 
   final DateFormat dateFormat = DateFormat("yyyy-MM-dd");
 
-  // 🔥 Método para seleccionar fechas
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     DateTime initialDate = DateTime.now();
     DateTime firstDate = DateTime.now();
-    DateTime lastDate = DateTime.now().add(Duration(days: 365)); // 1 año máximo
+    DateTime lastDate = DateTime.now().add(Duration(days: 365));
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,
       lastDate: lastDate,
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            primaryColor: Colors.deepPurpleAccent,
+            hintColor: Colors.deepPurpleAccent,
+            colorScheme: ColorScheme.dark(
+              primary: Colors.deepPurpleAccent,
+              surface: Colors.black,
+              onSurface: Colors.white,
+            ),
+            dialogBackgroundColor: Colors.black,
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedDate != null) {
@@ -38,7 +79,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
         if (isStartDate) {
           startDate = pickedDate;
           if (endDate != null && startDate!.isAfter(endDate!)) {
-            endDate = null; // Reset endDate si es menor que startDate
+            endDate = null;
           }
         } else {
           endDate = pickedDate;
@@ -48,7 +89,6 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
     }
   }
 
-  // 🔥 Método para calcular el precio total
   void _calculateTotalPrice() {
     if (startDate != null && endDate != null) {
       int days = endDate!.difference(startDate!).inDays + 1;
@@ -59,11 +99,11 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
     }
   }
 
-  // 🔥 Método para guardar la reserva en Firebase y actualizar la disponibilidad
   Future<void> _confirmReservation() async {
     if (startDate == null || endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Selecciona las fechas de la reserva"),
+        content: Text("⚠️ Selecciona las fechas de la reserva"),
+        backgroundColor: Colors.redAccent,
       ));
       return;
     }
@@ -78,7 +118,6 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
 
     String reservationId = reservationsRef.push().key!;
 
-    // 🔥 1️⃣ Guardar la reserva en Firebase
     await reservationsRef.child(reservationId).set({
       'usuario': userId,
       'vehiculo': widget.vehicleId,
@@ -88,15 +127,14 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
       'estado': 'pendiente',
     });
 
-    // 🔥 2️⃣ Marcar el vehículo como NO disponible en Firebase
     await vehicleRef.update({'disponibilidad': false});
 
-    // 🔥 3️⃣ Mostrar mensaje de éxito
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Reserva realizada correctamente"),
+      content: Text("✅ Reserva realizada correctamente"),
+      backgroundColor: Colors.greenAccent,
     ));
 
-    Navigator.pop(context); // Volver a la pantalla anterior
+    Navigator.pop(context);
   }
 
   @override
@@ -104,53 +142,127 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
     String imageUrl = (widget.vehicleData['imagenes'] != null &&
             widget.vehicleData['imagenes'].isNotEmpty)
         ? widget.vehicleData['imagenes'][0]
-        : "https://cdn-icons-png.flaticon.com/512/1998/1998701.png"; // 🔥 Imagen por defecto
+        : "https://cdn-icons-png.flaticon.com/512/1998/1998701.png";
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-          title: Text(
-              "${widget.vehicleData['marca']} ${widget.vehicleData['modelo']}")),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Image.network(imageUrl,
-                width: double.infinity, height: 200, fit: BoxFit.cover),
-            SizedBox(height: 10),
-            Text("Precio por día: ${widget.vehicleData['precio']}€",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-
-            // 🔥 Selección de Fechas
-            SizedBox(height: 10),
-            ListTile(
-              leading: Icon(Icons.calendar_today),
-              title: Text(startDate == null
-                  ? "Seleccionar fecha de inicio"
-                  : "Inicio: ${dateFormat.format(startDate!)}"),
-              onTap: () => _selectDate(context, true),
+        title: Text(
+          "${widget.vehicleData['marca']} ${widget.vehicleData['modelo']}",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purpleAccent, Colors.blueAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            ListTile(
-              leading: Icon(Icons.calendar_today),
-              title: Text(endDate == null
-                  ? "Seleccionar fecha de fin"
-                  : "Fin: ${dateFormat.format(endDate!)}"),
-              onTap: () => _selectDate(context, false),
+          ),
+        ),
+        elevation: 10,
+        shadowColor: Colors.purpleAccent.withOpacity(0.5),
+      ),
+      body: Stack(
+        children: [
+          _buildNeonBackground(),
+          Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                _buildVehicleImage(imageUrl),
+                SizedBox(height: 15),
+                _buildDetailText(
+                    "Precio por día: ${widget.vehicleData['precio']}€"),
+                SizedBox(height: 15),
+                _buildDatePickerTile(
+                    "Inicio: ", startDate, () => _selectDate(context, true)),
+                _buildDatePickerTile(
+                    "Fin: ", endDate, () => _selectDate(context, false)),
+                SizedBox(height: 20),
+                _buildDetailText(
+                    "Total a pagar: ${totalPrice.toStringAsFixed(2)}€"),
+                SizedBox(height: 30),
+                _buildNeonButton(
+                    text: "Confirmar Reserva", onPressed: _confirmReservation),
+                SizedBox(height: 20),
+              ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // 🔥 Precio Total
-            SizedBox(height: 10),
-            Text("Total a pagar: ${totalPrice.toStringAsFixed(2)}€",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-
-            // 🔥 Botón para confirmar reserva
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _confirmReservation,
-              child: Text("Confirmar Reserva"),
-            ),
-          ],
+  // 🎇 Fondo con efecto neón
+  Widget _buildNeonBackground() {
+    return Positioned.fill(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            colors: [Colors.blue.shade900.withOpacity(0.5), Colors.black],
+            center: Alignment.center,
+            radius: 1.5,
+          ),
         ),
       ),
+    );
+  }
+
+  // 🖼 Imagen del vehículo con glow
+  Widget _buildVehicleImage(String imageUrl) {
+    return Container(
+      width: double.infinity,
+      height: 220,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blueAccent.withOpacity(0.5),
+            blurRadius: 15,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(imageUrl, fit: BoxFit.cover),
+      ),
+    );
+  }
+
+  // 📅 Selección de fechas con estilo neón
+  Widget _buildDatePickerTile(
+      String label, DateTime? date, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(Icons.calendar_today, color: Colors.purpleAccent),
+      title: Text(
+          date == null
+              ? "$label Seleccionar fecha"
+              : "$label ${dateFormat.format(date)}",
+          style: TextStyle(color: Colors.white)),
+      onTap: onTap,
+    );
+  }
+
+  // 📝 Texto de detalles del vehículo
+  Widget _buildDetailText(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+          fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+    );
+  }
+
+  // 🚀 Botón con Efecto Neón
+  Widget _buildNeonButton(
+      {required String text, required VoidCallback onPressed}) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+      child: Text(text,
+          style: TextStyle(
+              fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
     );
   }
 }

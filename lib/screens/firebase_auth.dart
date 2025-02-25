@@ -3,6 +3,28 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
+/**
+ * Clase AuthScreen
+ *
+ * Esta pantalla proporciona la funcionalidad de autenticación para los usuarios de la aplicación.
+ * Permite a los usuarios iniciar sesión o registrarse con correo electrónico y contraseña utilizando Firebase Authentication.
+ *
+ * Funcionalidades principales:
+ * - Inicio de sesión con Firebase Authentication mediante correo y contraseña.
+ * - Registro de nuevos usuarios en Firebase Authentication.
+ * - Almacena los datos de los usuarios registrados en Firebase Realtime Database.
+ * - Redirige al usuario a la pantalla principal después de una autenticación exitosa.
+ *
+ * Métodos destacados:
+ * - `_signIn()`: Inicia sesión con Firebase usando las credenciales ingresadas.
+ * - `_register()`: Registra un nuevo usuario en Firebase Authentication y almacena su información en la base de datos.
+ *
+ * Diseño:
+ * - Interfaz sencilla con campos de entrada para el correo y la contraseña.
+ * - Botones para iniciar sesión y registrarse con estilo estándar de Material Design.
+ */
+
+
 class AuthScreen extends StatefulWidget {
   @override
   _AuthScreenState createState() => _AuthScreenState();
